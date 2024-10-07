@@ -1,0 +1,33 @@
+/*
+    This is a test file for our CMinus parser 
+    This file is used to test errors of the following type: 
+        - Missing right side of assignment
+        - missing function arguments in declaration
+        - invalid return statement
+
+*/
+
+bool ComputeCube(int num) {
+    return (num * num * num);
+}
+
+void someOtherFunc() {  /* missing function args  (need to use void for empty args) */
+    /* do nothing */
+}
+
+int main(void) {
+
+    int userNum;
+    userNum = ; /* missing right side of assignment expression */
+
+    if (userNum <= 0) {
+        return (-1);
+    }
+
+    while (userNum != 100) {
+        cube = ComputeCube(userNum);
+        userNum = userNum + 1;
+    }
+
+    return (userNum - 10) /* missing semi-colon at end of return statement */
+}

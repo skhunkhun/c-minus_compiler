@@ -1,0 +1,42 @@
+/*
+    This is a test file for our C-Minus parser 
+    - this file contains a few errors but is mainly used to verify that recursion works as expected
+    - we also verify that our analyzer catches issues with function returns
+*/
+
+int x [10];
+void ComputeCube(int num, int hello, bool func, int x[]);
+
+void test (int num){
+    int nice[4];
+    ComputeCube(4, 3, false, nice);
+}
+
+void someTest(void) {
+    return 3;    /* attempted return from void func */
+}
+
+int anotherTest(void) {
+    return;                 /* missing return type */
+}
+
+int main(int argc, int argv) {
+    int userNum; 
+    int cube;
+    int test[3];
+
+    if(cube <= 2){
+        int cube;
+    }
+
+    ComputeCube(4, 4, true, x);
+    return 0; 
+}
+
+void ComputeCube(int num, int hello, bool func, int x[]) {
+    ComputeCube(num, hello, func, x);
+}
+
+int check(int nice){
+    check(nice);
+}

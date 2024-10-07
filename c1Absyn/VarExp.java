@@ -1,0 +1,16 @@
+package c1Absyn;
+
+public class VarExp extends Exp {
+  public Var variable;
+
+  public VarExp( int row, int col, Var variable, Dec dtype ) {
+    super(dtype);
+    this.row = row;
+    this.col = col;
+    this.variable = variable;
+  }
+
+  public void accept( AbsynVisitor visitor, int level, boolean isAddr ) {
+    visitor.visit( this, level, isAddr );
+  }
+}

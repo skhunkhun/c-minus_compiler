@@ -1,0 +1,35 @@
+/*
+    - This is a test file to test the assembly code generation of our C-Minus parser 
+    - This file contains the following syntax errors: 
+        - missing return type in function dec 
+        - missing args in function dec (i.e. () is not valid, need to use (void))
+        - missing '(' or ')' in function dec/proto 
+*/
+
+ComputeCube (int num) {    /* ERROR: missing return type */
+    return (num * num * num);
+}
+
+bool myFunc int someVal) ; /* missing opening LBRACKET*/
+
+int anotherFunc () {  /*  missing function args */
+    return;
+}
+
+
+int main (void) {
+    int userNum; 
+    int cube;
+    userNum = input();
+
+    if (userNum <= 0) {
+        return (-1);
+    }
+
+    while (userNum != 100) {
+        cube = ComputeCube(userNum);
+        userNum = userNum + 1;
+    }
+
+    return 0; 
+}

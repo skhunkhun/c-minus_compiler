@@ -1,0 +1,30 @@
+/*
+    - This is a test file to test the assembly code generation of our C-Minus parser 
+    - This file contains NO errors and is used to verify that nested blocks work as expected
+*/
+
+int myFunc(int n) {
+    if (n > 5) {
+        if (n == 10) {
+            while (n > 5) {
+                output(n);
+                n = n - 1;
+            }
+            return (10);
+        }else {
+            return (100);
+        }
+    }
+
+    return (1000);
+}
+
+void main(void) {
+    int x;
+    int result;
+
+    x = input();
+    result = myFunc(x);
+    output(result);
+
+}

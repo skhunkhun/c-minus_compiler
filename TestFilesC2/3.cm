@@ -1,0 +1,37 @@
+/*
+    This is a test file for our C-Minus parser to test the semantic analysis
+    This file contains the following semantic errors: 
+        - mismatching number of arguments in function call
+        - mismatching argument types in function call 
+        - double declaration of function
+
+*/
+
+void myFunc(int num1, bool reverse) {
+    int temp;
+    int arr[4];
+
+    int otherArr[5];
+    temp = arr[2];
+    
+    if (reverse == true) {
+        temp = temp - 10;
+    }    
+}
+
+bool myFunc(int num1, bool reverse) { /* double declaration of function */
+    int temp;
+}
+
+int someFunc(void) {
+    int tempNum; 
+    tempNum = 2;
+}
+
+
+void main (void) {
+    myFunc(2, false, 8, 1);  /* incorrect number of args */
+
+    myFunc(2, 2);            /* incorrect argument types */
+}
+    

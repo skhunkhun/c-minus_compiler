@@ -1,0 +1,7 @@
+/*
+    - This is a test file to test the assembly code generation of our C-Minus parser 
+    - This file is used to test if the following run-time errors work correctly: 
+       - array index out of bounds (either below 0 or above max size)
+       - missing main function
+*/
+

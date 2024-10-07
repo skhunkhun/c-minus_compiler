@@ -1,0 +1,53 @@
+/*
+    - This is a test file to test the assembly code generation of our C-Minus parser 
+    - This file contains NO errors and is an example of a valid program
+    - This file tests the functionality of functions and arrays
+*/
+
+int counter;
+
+int addTwo(int num); 
+
+int divideNums(int num1, int num2) {
+    return num1 / num2;
+}
+
+int addTwo(int num) {
+    int result;
+    result = num + 2;
+    return result;
+}
+
+void main (void) {
+    int x;
+    int y;
+    int someIndex;
+    int test;
+    int myArray[5];
+
+    x = input();
+    y = input();
+
+    counter = 0;
+    someIndex = 1;
+
+    test = addTwo(x);
+    output(test);
+
+    test = divideNums(x, y);
+    output(test);
+
+    /* various ways of accessing/setting arrays */
+    myArray[0] = test; 
+    myArray[someIndex] = 15; 
+    myArray[2] = 16; 
+    myArray[3] = 82;
+    myArray[4] = 83;
+
+    while (counter < 5) {
+        output(myArray[counter]);
+        counter = counter + 1;
+    }
+
+
+}

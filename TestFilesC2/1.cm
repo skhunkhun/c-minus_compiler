@@ -1,0 +1,28 @@
+/*
+    This is a test file for our C-Minus parser to test the semantic analysis
+    This file contains NO errors and is an example of a valid program 
+    We use the idea of function protos in this to demonstrate that they work with our parser
+*/
+
+bool ComputeCube(int num, int hello, bool func, int x[]);
+
+void main(int argc, int argv) {
+    int userNum; 
+    int cube;
+    int test[3];
+    bool check;
+
+    test[1] = userNum;
+
+    if(cube <= 2){
+        int cube;
+    }
+
+    check = ComputeCube(4, 3, false, test);
+}
+
+bool ComputeCube(int num, int hello, bool func, int x[]) {
+    int userNum; 
+    int cube;
+    return (false);
+}

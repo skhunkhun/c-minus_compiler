@@ -1,0 +1,426 @@
+/*
+  the cup specification to create a parser for the C-Minus programming language 
+*/
+   
+   
+/* ----------------------Preliminary Declarations Section--------------------*/
+   
+import c1Absyn.*;
+   
+/* Parser code to change the way the parser reports errors (include
+   line and column number of the error). */
+parser code {:
+
+    public boolean syntaxError = false;
+    
+    /* Change the method report_error so it will display the line and
+       column of where the error occurred in the input as well as the
+       reason for the error which is passed into the method in the
+       String 'message'. */
+    public void report_error(String message, Object info) {
+
+        syntaxError = true;
+   
+        /* Create a StringBuffer called 'm' with the string 'Error' in it. */
+        StringBuffer m = new StringBuffer("Error");
+   
+        /* Check if the information passed to the method is the same
+           type as the type java_cup.runtime.Symbol. */
+        if (info instanceof java_cup.runtime.Symbol) {
+            /* Declare a java_cup.runtime.Symbol object 's' with the
+               information in the object info that is being typecasted
+               as a java_cup.runtime.Symbol object. */
+            java_cup.runtime.Symbol s = ((java_cup.runtime.Symbol) info);
+   
+            /* Check if the line number in the input is greater or
+               equal to zero. */
+            if (s.left >= 0) {                
+                /* Add to the end of the StringBuffer error message
+                   the line number of the error in the input. */
+                m.append(" in line "+(s.left+1));   
+                /* Check if the column number in the input is greater
+                   or equal to zero. */
+                if (s.right >= 0)                    
+                    /* Add to the end of the StringBuffer error message
+                       the column number of the error in the input. */
+                    m.append(", column "+(s.right+1));
+            }
+        }
+   
+        /* Add to the end of the StringBuffer error message created in
+           this method the message that was passed into this method. */
+        m.append(" : "+message);
+   
+        /* Print the contents of the StringBuffer 'm', which contains
+           an error message, out on a line. */
+        System.err.println(m);
+    }
+   
+    /* Change the method report_fatal_error so when it reports a fatal
+       error it will display the line and column number of where the
+       fatal error occurred in the input as well as the reason for the
+       fatal error which is passed into the method in the object
+       'message' and then exit.*/
+    public void report_fatal_error(String message, Object info) {
+        report_error(message, info);
+        System.exit(1);
+    }
+
+:};
+   
+   
+/* ------------Declaration of Terminals and Non Terminals Section----------- */
+   
+terminal IF, ELSE, BOOL, RETURN, VOID, WHILE, INT;
+terminal ASSIGNMENT, PLUS, MINUS, TIMES, DIV, LT, LTE, GT, GTE, EQ, NEQ, UMINUS, OR, AND, SEMI, COMMA, LPAREN, RPAREN, LBRACKET, RBRACKET, LCBRACE, RCBRACE;
+terminal String ID, NUM, TRUTH; 
+terminal ERROR;
+   
+non terminal DecList program, dec_list;
+non terminal VarDecList param_list, local_decs, params;
+non terminal VarDec var_dec, param;
+non terminal ExpList stmt_list, args, arg_list;
+non terminal Exp compound_stmt, stmt, exp_stmt, selection_stmt, itertion_stmt, return_stmt, exp, obool_exp, abool_exp, ubool_exp, simple_exp, additive_exp, term, signed_factor, factor, call;
+non terminal Dec dec, fun_dec, fun_proto;
+non terminal Var var;
+non terminal NameTy type_spec;
+non terminal Integer relop, addop, mulop;
+
+precedence left IF, RETURN, WHILE, SEMI, LBRACKET, LCBRACE, ID, NUM, TRUTH;
+precedence left PLUS, MINUS, OR;
+precedence left TIMES, DIV, AND;
+precedence left ELSE;
+precedence right ASSIGNMENT, UMINUS;
+precedence nonassoc LT, LTE, GTE, GT, EQ, NEQ;
+
+/* ----------------------------Grammar Section-------------------- */
+   
+start with program;
+
+program	     ::= dec_list: dl 
+                  {: 
+                    RESULT = dl; 
+                  :}
+               ;
+
+dec_list	     ::= dec_list: dl dec: d 
+                  {: DecList list = dl; 
+                     while (list.tail != null) {
+                        list = list.tail;
+                     }
+                     list.tail = new DecList(d, null);   
+                     RESULT = dl; :}
+                | dec: d  
+                  {:  RESULT = new DecList(d, null); :}
+               ;
+
+dec           ::= var_dec: v  
+                  {: RESULT = v; :}
+                | fun_dec: f  
+                  {: RESULT = f; :}
+                | fun_proto: fp
+                  {: RESULT = fp; :}
+               ;
+
+var_dec       ::= type_spec: t ID: i SEMI 
+                  {: RESULT = new SimpleDec(tleft, tright, t, i); :}
+                | type_spec: t ID: i LBRACKET NUM: n RBRACKET SEMI
+                  {: RESULT = new ArrayDec(tleft, tright, t, i, Integer.parseInt(n)); :}
+                | type_spec: t error: e
+                    {:
+                     parser.report_error("invalid variable declaration. Line "+ (eleft+1) + " Column " +(eright+1), null);
+                     RESULT = new SimpleDec(eleft, eright, t, null);
+                    :} 
+               ;
+
+type_spec      ::= BOOL: b
+                   {: RESULT = new NameTy(bleft, bright, NameTy.BOOL);  :}
+                 | INT: i 
+                   {: RESULT = new NameTy(ileft, iright, NameTy.INT);  :}
+                 | VOID: v
+                   {: RESULT = new NameTy(vleft, vright, NameTy.VOID);  :}
+               ;
+
+fun_dec        ::= type_spec: t ID: i LPAREN params: p RPAREN compound_stmt: c 
+                   {: RESULT = new FunctionDec(tleft, tright, t, i, p, c); :}
+                 | type_spec: t error: e LPAREN params: p RPAREN compound_stmt: c
+                   {:
+                      parser.report_error("Missing function name in line " + (eleft+1) + " Column " +(eright+1), null);
+                      RESULT = new FunctionDec(tleft, tright, t, "MISSING", p, c);
+                   :}
+                 | error: e ID: i LPAREN params: p RPAREN compound_stmt: c
+                   {:
+                      parser.report_error("Missing return type in line " + (ileft+1) + " Column " +(iright+1), null);
+                      NameTy temp = new NameTy(eleft, eright, NameTy.MISSING);
+                      RESULT = new FunctionDec(eleft, eright, temp, i, p, c);
+                   :}
+                 | type_spec: t ID: i LPAREN error: e RPAREN compound_stmt: c
+                   {:
+                      parser.report_error("Invalid function args in line " + (eleft+1) + " Column " +(eright+1) + ". Use void if no args", null);
+                      RESULT = new FunctionDec(tleft, tright, t, i, new VarDecList(null, null), c);
+                   :}
+                  |type_spec: t ID: i error: e params: p RPAREN compound_stmt: c 
+                   {: parser.report_error("Invalid function declaration. Line "+ (eleft+1) + " Column " +(eright+1),null);
+                      RESULT = new FunctionDec(tleft, tright, t, i, p, c); 
+                   :}
+                  |type_spec: t ID: i LPAREN params: p error: e compound_stmt: c 
+                   {: parser.report_error("Invalid function declaration. Line "+ (eleft+1) + " Column " +(eright+1),null);
+                      RESULT = new FunctionDec(tleft, tright, t, i, p, c); 
+                   :}
+               ;
+
+fun_proto      ::= type_spec: t ID: i LPAREN params: p RPAREN SEMI
+                   {: RESULT = new FunctionDec(tleft, tright, t, i, p, new NilExp(tleft, tright, null)); :}
+                  |type_spec: t ID: i error: e params: p RPAREN SEMI
+                   {: parser.report_error("Invalid function prototype. Line "+ (eleft+1) + " Column " +(eright+1),null);
+                      RESULT = new FunctionDec(tleft, tright, t, i, null, new NilExp(tleft, tright, null));
+                   :}
+                  |type_spec: t ID: i LPAREN params: p error: e SEMI
+                   {: parser.report_error("Invalid function prototype. Line "+ (eleft+1) + " Column " +(eright+1),null);
+                      RESULT = new FunctionDec(tleft, tright, t, i, p, new NilExp(tleft, tright, null));
+                   :}
+               ;
+
+params        ::= param_list: pl
+                  {: RESULT = pl; :}
+                | VOID: v
+                {: RESULT = new VarDecList(new SimpleDec(vleft, vright, new NameTy(vleft, vright, NameTy.VOID), "VOID(function arg)"), null); :}
+               ;
+
+param_list     ::= param_list: pl COMMA param: p
+                  {: VarDecList list = pl; 
+                     while (list.tail != null) {
+                        list = list.tail;
+                     }
+                     list.tail = new VarDecList(p, null);   
+                     RESULT = pl; :}
+                 | param: p
+                  {: RESULT = new VarDecList(p, null); :}
+
+
+               ;
+
+param        ::= type_spec: t ID: i 
+                 {: RESULT =  new SimpleDec(tleft, tright, t, i); :}
+               | type_spec: t ID: i LBRACKET RBRACKET
+                 {: RESULT = new ArrayDec(tleft, tright, t, i, 0); :}
+
+             ;
+
+compound_stmt ::= LCBRACE local_decs: l stmt_list: s RCBRACE 
+                  {: RESULT = new CompoundExp(lleft, lright, l, s, new SimpleDec(lleft, lright, new NameTy(lleft, lright, NameTy.UNKNOWN), "CompoundExp")); :}
+              ;
+
+local_decs      ::= local_decs: l var_dec: v  
+                  {: VarDecList list = l; 
+                     if (list == null) {
+                        RESULT = new VarDecList(v, null);
+                     } else {
+                        while (list.tail != null) {
+                           list = list.tail;
+                        }
+                        list.tail = new VarDecList(v, null);   
+                        RESULT = l;
+                     }
+                  :}
+                 |
+                  {: RESULT = null; :}
+               ;
+
+stmt_list   ::= stmt_list: sl stmt: s
+               {: ExpList list = sl;
+                     if(list == null){
+                        RESULT = new ExpList(s, null);
+                     } else {
+                        while (list.tail != null) {
+                           list = list.tail;
+                        }
+                        list.tail = new ExpList(s, null);   
+                        RESULT = sl; 
+                  }
+               :}
+              |
+                {: RESULT = null; :}
+            ;
+
+stmt        ::= exp_stmt: e 
+                {: RESULT = e; :}
+              | compound_stmt: c  
+                {: RESULT = c; :}
+              | selection_stmt: s
+                {: RESULT = s; :}
+              | itertion_stmt: i
+                {: RESULT = i; :}
+              | return_stmt: r
+                {: RESULT = r; :}
+              | error: e SEMI
+                {: 
+                  parser.report_error("Invalid statement in line " + (eleft + 1) + " column " + (eright + 1),  null);
+                  RESULT =  new NilExp(eleft, eright, null);
+                :}
+            ;
+
+exp_stmt    ::= exp: e SEMI
+               {: RESULT = e; :}
+              | SEMI: s
+               {: RESULT = new NilExp(sleft, sright, null); :}
+            ;
+
+selection_stmt ::= IF LPAREN exp: e RPAREN stmt: s 
+                   {: RESULT = new IfExp(eleft, eright, e, s, new NilExp(eleft, eright, e.dtype), e.dtype); :}
+                 | IF LPAREN exp: e RPAREN stmt: s ELSE stmt: es
+                   {: RESULT = new IfExp(eleft, eright, e, s, es, e.dtype); :}
+                 | IF LPAREN error: e RPAREN stmt: s
+                   {:
+                      parser.report_error("Missing statement inside of IF in line " + (eleft+1) + " Column " +(eright+1), null);
+                      RESULT = new IfExp(eleft, eright, new NilExp(eleft, eright, null), s, new NilExp(eleft, eright, null), null);
+                   
+                   :}
+               ;
+
+itertion_stmt ::= WHILE: w LPAREN exp: e RPAREN stmt: s
+                  {: RESULT = new WhileExp(wleft, wright, e, s, e.dtype); :}
+                | WHILE: w LPAREN exp: e RPAREN error: er
+                  {:
+                    parser.report_error("Expected body for while loop in line " + (eleft + 1) + " column " + (erright + 1), null);
+                    RESULT = new WhileExp(wleft, wright, e, new NilExp(erleft, erright, null), null);
+                  :}
+               ;
+
+return_stmt    ::= RETURN exp: e SEMI
+                   {: RESULT = new ReturnExp(eleft, eright, e, e.dtype); :}
+                 | RETURN: r SEMI
+                   {: RESULT = new ReturnExp(rleft, rright, new NilExp(rleft, rright, null), new SimpleDec(rleft, rright, new NameTy(rleft, rright, NameTy.UNKNOWN), "ReturnExp")); :}
+                 | RETURN: r error: e
+                   {: 
+                      parser.report_error("Invalid return, expected semi-colon in line " + (rleft + 1) + " column " + (eright + 1), null);
+                      RESULT = new ReturnExp(rleft, rright, new NilExp(eleft, eright, null), null); 
+                   :}
+               ;
+
+exp            ::= var: v ASSIGNMENT exp: e 
+                  {: 
+                    if (e.dtype == null){
+                      RESULT = new AssignExp(vleft, vright, new VarExp(vleft, vright, v, null), e, new SimpleDec(vleft, vright, new NameTy(vleft, vright, NameTy.UNKNOWN), "AssignExp")); 
+                    } else {
+                      RESULT = new AssignExp(vleft, vright, new VarExp(vleft, vright, v, null), e, e.dtype); 
+                    }
+                  :}
+                 | obool_exp: o
+                   {: RESULT = o; :}
+                 | var: v ASSIGNMENT error: e 
+                   {:
+                      parser.report_error("Missing value to assign in line "+ (eleft+1) + " Column " +(eright+1), null);
+                      RESULT = new AssignExp(vleft, vright, new VarExp(vleft, vright, v, null), new NilExp(eleft, eright, null), null);
+                   :}
+               ;
+
+var            ::= ID: i 
+                   {: RESULT = new SimpleVar(ileft, iright, i); :}
+                 | ID: i LBRACKET exp: e RBRACKET
+                   {: RESULT = new IndexVar(ileft, iright, i, e); :}
+               ;
+
+obool_exp      ::= obool_exp: o OR abool_exp: a 
+                   {: RESULT = new OpExp(oleft, oright, o, OpExp.OR, a, new SimpleDec(oleft, oright, new NameTy(oleft, oright, NameTy.BOOL), "OpExp")); :}
+                 | abool_exp: a
+                  {: RESULT = a; :}
+               ;    
+
+abool_exp      ::= abool_exp: a AND ubool_exp: u
+                  {: RESULT = new OpExp(aleft, aright, a, OpExp.AND, u, new SimpleDec(aleft, aright, new NameTy(aleft, aright, NameTy.BOOL), "OpExp")); :}
+                 | ubool_exp: u
+                  {: RESULT = u; :}
+               ;
+
+ubool_exp      ::= UMINUS ubool_exp: u
+                  {: RESULT = new OpExp(uleft, uright, new NilExp(uleft, uright, null), OpExp.NOT, u,new SimpleDec(uleft, uright, new NameTy(uleft, uright, NameTy.BOOL), "OpExp")); :}
+                 | simple_exp: s
+                  {: RESULT = s; :}
+               ;
+
+simple_exp     ::= additive_exp: e1 relop: r additive_exp: e2
+                   {:
+                     RESULT = new OpExp(e1left, e1right, e1, r, e2, new SimpleDec(e1left, e1right, new NameTy(e1left, e1right, NameTy.BOOL), "OpExp"));
+                   :}
+
+                 | additive_exp: a
+                   {: RESULT = a; :}
+               ;
+
+relop          ::= LT: l
+                   {: RESULT = OpExp.LT; :}
+                 | LTE: lt
+                   {: RESULT = OpExp.LTE; :}
+                 | GT: g
+                   {: RESULT = OpExp.GT; :}
+                 | GTE: gt
+                   {: RESULT = OpExp.GTE; :}
+                 | EQ: e
+                   {: RESULT = OpExp.EQ; :}
+                 | NEQ: ne 
+                   {: RESULT = OpExp.NEQ; :}
+               ;
+
+additive_exp   ::= additive_exp: a addop: o term: t 
+                   {: RESULT = new OpExp(aleft, aright, a, o, t, new SimpleDec(aleft, aright, new NameTy(aleft, aright, NameTy.INT), "OpExp")); :}
+                 | term: t
+                   {: RESULT = t; :}
+               ;
+
+addop          ::= PLUS: p 
+                   {: RESULT = OpExp.PLUS; :}
+                 | MINUS: m
+                   {: RESULT = OpExp.MINUS; :}
+               ;
+
+term           ::= term: t mulop: m signed_factor: s
+                   {: RESULT = new OpExp(tleft, tright, t, m, s, new SimpleDec(tleft, tright, new NameTy(tleft, tright, NameTy.INT), "OpExp")); :}
+                 | signed_factor: f 
+                   {: RESULT = f; :}
+               ;
+
+mulop          ::= TIMES: t 
+                   {: RESULT = OpExp.TIMES; :}
+                 | DIV: d 
+                   {: RESULT = OpExp.DIV; :}
+               ;
+
+signed_factor  ::= MINUS: m signed_factor: f 
+                   {: RESULT = new OpExp(mleft, mright, new NilExp(mleft, mright, null), OpExp.UMINUS, f, new SimpleDec(mleft, mright, new NameTy(mleft, mright, NameTy.INT), "OpExp")); :}
+                 | factor: f 
+                   {: RESULT = f; :}
+               ;
+
+factor         ::= LPAREN exp: e RPAREN 
+                   {: RESULT = e; :}
+                 | var: v 
+                   {: RESULT = new VarExp(vleft, vright, v, new SimpleDec(vleft, vright, new NameTy(vleft, vright, NameTy.UNKNOWN), v.name)); :}
+                 | call: c
+                   {: RESULT = c; :}
+                 | NUM: n
+                   {: RESULT = new IntExp(nleft, nright, n, new SimpleDec(nleft, nright, new NameTy(nleft, nright, NameTy.INT), "IntExp")); :}
+                 | TRUTH: t
+                   {: RESULT = new BoolExp(tleft, tright, t, new SimpleDec(tleft, tright, new NameTy(tleft, tright, NameTy.BOOL), "BoolExp")); :}
+               ;
+
+call           ::= ID: i LPAREN args: a RPAREN 
+                   {: RESULT = new CallExp(ileft, iright, i, a, new SimpleDec(ileft, iright, new NameTy(ileft, iright, NameTy.UNKNOWN), i)); :}
+               ;
+
+args           ::= arg_list: a
+                   {: RESULT = a; :}
+                 |
+                  {: RESULT = null; :}
+               ;
+
+arg_list       ::= arg_list: a COMMA exp: e
+                   {: ExpList list = a; 
+                     while (list.tail != null) {
+                        list = list.tail;
+                     }
+                     list.tail = new ExpList(e, null);   
+                     RESULT = a; :}
+                 | exp: e
+                   {: RESULT = new ExpList(e, null); :}
+               ;

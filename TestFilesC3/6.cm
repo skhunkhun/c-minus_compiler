@@ -1,0 +1,28 @@
+/*
+    - This is a test file to test the assembly code generation of our C-Minus parser 
+    - This file contains the following syntax errors: 
+        - Missing right side of assignment
+        - invalid return statement
+*/
+
+
+bool ComputeCube(int num) {
+    return (num * num * num);
+}
+
+int main(void) {
+
+    int userNum;
+    userNum = ; /* missing right side of assignment expression */
+
+    if (userNum <= 0) {
+        return (-1);
+    }
+
+    while (userNum != 100) {
+        cube = ComputeCube(userNum);
+        userNum = userNum + 1;
+    }
+
+    return (userNum - 10) /* missing semi-colon at end of return statement */
+}

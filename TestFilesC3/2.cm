@@ -1,0 +1,45 @@
+/*
+    - This is a test file to test the assembly code generation of our C-Minus parser 
+    - This file contains NO errors and is an example of a valid program
+    - This file tests the functionality of various expressions and if/while expressions
+    - We also test the usage of global variables in this file
+*/
+
+int globalVar1;
+int globalVar2;
+
+void main (void) {
+    int x;
+    int y;
+    int total;
+
+    globalVar1 = input();
+    output(globalVar1);
+
+    globalVar2 = input();
+
+    /* test if and comparison ops */
+    if (globalVar2 > 5) {
+        y = 99;
+    }else {
+        y = 44;
+    }
+
+    output(y);
+
+    y = 1;
+    x = 7;
+
+    y = x * 2 + y - 5; /* test multiple ops together */
+    output(y);
+    output(10000);
+
+    /* test while loops */
+    total = 0;
+    while (x > 1) {
+        total = total + x;
+        x = x - 1;
+    }
+
+    output(total);
+}

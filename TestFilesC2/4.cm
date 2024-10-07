@@ -1,0 +1,31 @@
+/*
+    This is a test file for our C-Minus parser to test the semantic analysis
+    This file contains the following semantic errors: 
+        - invalid arithmetic operation 
+        - invalid boolean operation 
+        - invalid comparison operation
+
+*/
+
+
+void main (void) {
+    int x;
+    int y;
+    bool test;
+    bool result;
+
+    x = 1; 
+    y = 14; 
+    test = false; 
+
+    if (x == 1) {
+        result = x || test;     /* invalid logical operation */
+    }else {
+        x = y * test;           /* invalid arithmetic operation */
+    }
+ 
+    while (x >= result) {   /* invalid comparison */
+
+    }
+
+}

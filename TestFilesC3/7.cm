@@ -1,0 +1,25 @@
+/*
+    - This is a test file to test the assembly code generation of our C-Minus parser 
+    - This file contains the following semantic errors: 
+        - use of undefined variable 
+        - declaration and use of invalid variables (eg. void x)
+        - double declaration of a variable
+*/
+
+
+int someFunc(void) {
+    return 14;
+}
+
+void main(void) {
+    int x; 
+    int y;
+    void badVar;    /* invalid var */
+    int myArray[5];
+    int myArray[5]; /* double dec */
+
+    test = x;       /* undefined var 'test' */
+
+    y = someFunc();
+
+}

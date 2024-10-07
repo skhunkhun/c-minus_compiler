@@ -1,0 +1,22 @@
+int global1;
+int secondGlob;
+
+int someFunc(void) {
+    return 99;
+}
+
+int someFunc2(void) {
+    return someFunc();
+}
+
+void main (void) {
+    int x; 
+
+    x = someFunc();
+    global1 = someFunc2();
+    secondGlob = x + 4;
+
+    output(x);
+    output(global1);
+    output(secondGlob);
+}

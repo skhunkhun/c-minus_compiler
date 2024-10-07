@@ -1,0 +1,39 @@
+/*
+    This is a test file for our CMinus parser 
+    This file is used to test combinations of valid/invalid scenarios 
+    Specifically, we introduce a new type of error here: 
+        - invalid statement error (means that whatever the user typed in as a command was not recognized)
+    This file also tries combining statements together to test the parsers ability to recognize them
+*/
+
+
+bool GoodFunction(bool incomingValue) {
+    
+    if (var1 == true) {
+        var2 = -4 + var2;
+    }else {
+        var2 = 0;
+    }
+
+    return ~incomingValue;
+}
+
+void BadStatement(bool var1, int var2) {
+
+   NotGoodStatement() {};
+}
+
+
+int main (void) {
+
+    bool isNotValid; 
+    int numTerms; 
+
+    while (GoodFunction(isNotValid) == false) {
+        numTerms = input();
+    }
+
+    BadStatement(isNotValid, numTerms);
+
+    return (0);
+}

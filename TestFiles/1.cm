@@ -1,0 +1,28 @@
+/*
+    This is a test file for our C-Minus parser 
+    This file contains NO errors and is an example of a valid program 
+*/
+
+bool ComputeCube(int num, int hello, bool func, int x[]);
+
+int main(int argc, int argv) {
+    int userNum; 
+    int cube;
+    int test[3];
+    bool check;
+    bool nice;
+
+    if(cube <= 2){
+        int cube;
+    }
+
+    nice = ComputeCube(4, 3, false, test);
+
+    return 0; 
+}
+
+bool ComputeCube(int num, int hello, bool func, int x[]) {
+    int userNum; 
+    int cube;
+    return (false);
+}
